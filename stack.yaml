@@ -1,0 +1,22 @@
+packages:
+- .
+
+extra-deps:
+- hashable-1.3.5.0
+- rest-rewrite-0.3.0
+- git: https://github.com/ucsd-progsys/liquidhaskell
+  commit: 24be57c2a9e4f01bf595e90b76ab34cc3eb3fab3
+  subdirs:
+    - .
+    - liquid-base
+    - liquid-bytestring
+    - liquid-containers
+    - liquid-ghc-prim
+    - liquid-prelude
+    - liquid-vector
+- git: https://github.com/ucsd-progsys/liquid-fixpoint
+  commit: fcce61041a4a5d13d508bde3fe95ed1ba614acd4
+
+resolver: lts-18.27
+nix:
+  packages: [cacert, git, hostname, z3]

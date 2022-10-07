@@ -1,0 +1,25 @@
+cabal-version:      2.4
+name:               smart-contracts-lh
+version:            0.1.0.0
+
+-- synopsis: Smart contracts verified with lh
+
+-- A longer description of the package.
+-- description:
+
+author:             Facundo Domínguez
+maintainer:         facundo.dominguez@tweag.io
+
+extra-source-files: CHANGELOG.md
+
+library
+    build-depends:
+      liquidhaskell,
+      liquid-base,
+      liquid-bytestring,
+      liquid-containers,
+    hs-source-dirs:   src
+    exposed-modules:
+      Auction.Minswap
+      Plutus
+    default-language: Haskell2010
