@@ -47,7 +47,9 @@ import qualified Plutus as Pl
 {-@ LIQUID "--exact-data-cons" @-}
 
 
--- | The minswap bug is about minting more tokens than intended. Therefore,
+-- | The minswap bug is about minting more tokens than intended. In the
+-- case of the auction contract, we can make this statement more concrete
+-- by restricting the tokens to belong to a single asset class. Therefore,
 -- we write a predicate that holds for all transactions that only mint or
 -- burn tokens with a particular asset class and amount, and do not allow
 -- any other tokens to be burnt.
