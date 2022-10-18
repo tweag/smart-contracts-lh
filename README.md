@@ -5,8 +5,10 @@ There is [a pitch][pitch] motivating these experiments.
 
 Build and verify with
 ```
-stack build
+stack --nix build
 ```
+
+You might drop the `--nix` argument if `z3` is already in your PATH.
 
 At the moment there is only [one proof][noMinswap] of the absence of minswap in auctions.
 
