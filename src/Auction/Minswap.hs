@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fplugin=LiquidHaskell #-}
 
--- | This module offers a proof with Liquid Haskell that the Auction
+-- | This module proves with Liquid Haskell that the Auction
 -- contract in [1] doesn't have the minswap bug [2].
 --
 -- We had to take drastic measures to circumvent limitations in Liquid
