@@ -20,6 +20,7 @@ library
       liquid-containers,
     hs-source-dirs:   src
     exposed-modules:
+      Auction.DatumHijacking
       Auction.Eq
       Auction.Minswap
       Plutus

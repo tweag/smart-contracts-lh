@@ -1,9 +1,12 @@
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -fplugin=LiquidHaskell #-}
 module Plutus where
 
 {-@ LIQUID "--ple" @-}
 {-@ LIQUID "--exact-data-cons" @-}
 
+import Data.List (find)
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
 
@@ -91,9 +94,9 @@ data TxInfo = TxInfo
 
 -- | POSIX time is measured as the number of milliseconds since 1970-01-01T00:00:00Z
 newtype POSIXTime = POSIXTime { getPOSIXTime :: Integer }
+  deriving (Eq, Ord)
 
--- type POSIXTimeRange = Interval POSIXTime
-data POSIXTimeRange -- kept opaque for now
+type POSIXTimeRange = Interval POSIXTime
 
 data TxInInfo = TxInInfo
     { txInInfoOutRef   :: TxOutRef
@@ -176,10 +179,18 @@ ownCurrencySymbol ScriptContext{scriptContextPurpose=Minting cs} = cs
 -- data BuiltinString = BuiltinString Text
 type BuiltinString = String
 
+-- | Check if a transaction was signed by the given public key.
+txSignedBy :: TxInfo -> PubKeyHash -> Bool
+txSignedBy txi k = case find ((==) k) (txInfoSignatories txi) of
+    Just _  -> True
+    Nothing -> False
+
 -- | Emit the given 'BuiltinString' only if the argument evaluates to 'False'.
+{-@ traceIfFalse :: BuiltinString -> x:Bool -> { v:Bool | v = x } @-}
 traceIfFalse :: BuiltinString -> Bool -> Bool
 traceIfFalse str a = if a then True else trace str False
 
+{-@ trace :: BuiltinString -> x:a -> { v:a | v = x } @-}
 trace :: BuiltinString -> a -> a
 trace _ x = x
 
@@ -191,3 +202,71 @@ instance Semigroup Value where
 
 geq :: Value -> Value -> Bool
 geq = undefined
+
+
+-- | An interval of @a@s.
+--
+--   The interval may be either closed or open at either end, meaning
+--   that the endpoints may or may not be included in the interval.
+--
+--   The interval can also be unbounded on either side.
+data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
+  deriving (Eq, Ord)
+
+data Extended a = NegInf | Finite a | PosInf
+  deriving (Eq, Ord)
+
+-- | Whether a bound is inclusive or not.
+type Closure = Bool
+
+data LowerBound a = LowerBound (Extended a) Closure
+  deriving (Eq, Ord)
+
+data UpperBound a = UpperBound (Extended a) Closure
+  deriving (Eq, Ord)
+
+-- | @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
+--   @a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
+--   @member s a@.
+contains :: Ord a => Interval a -> Interval a -> Bool
+contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
+
+to :: a -> Interval a
+to s = Interval (LowerBound NegInf True) (upperBound s)
+
+upperBound :: a -> UpperBound a
+upperBound a = UpperBound (Finite a) True
+
+{-@ ignore lovelaceValueOf @-}
+lovelaceValueOf :: Integer -> Value
+lovelaceValueOf = error "undefined lovelaceValueOf" -- TH.singleton adaSymbol adaToken
+
+{-@ ignore valuePaidTo @-}
+valuePaidTo :: TxInfo -> PubKeyHash -> Value
+valuePaidTo ptx pkh = error "undefined valuePaidTo" -- mconcat (pubKeyOutputsAt pkh ptx)
+
+{-@ ignore valueLockedBy @-}
+-- | Get the total value locked by the given validator in this transaction.
+valueLockedBy :: TxInfo -> ValidatorHash -> Value
+valueLockedBy ptx h = error "undefined valueLockedBy"
+
+{-@ ignore assetClassValue @-}
+-- | A 'Value' containing the given amount of the asset class.
+assetClassValue :: AssetClass -> Integer -> Value
+assetClassValue (AssetClass (c, t)) i = error "undefined assetClassValue"
+
+-- | Get the validator and datum hashes of the output that is curently being validated
+{-@ ignore ownHashes @-}
+ownHashes :: ScriptContext -> (ValidatorHash, DatumHash)
+ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}}) = (s,dh)
+ownHashes _ = error "Lg" -- "Can't get validator and datum hashes"
+
+-- | Get the hash of the validator script that is currently being validated.
+ownHash :: ScriptContext -> ValidatorHash
+ownHash p = fst (ownHashes p)
+
+-- | Find the input currently being validated.
+findOwnInput :: ScriptContext -> Maybe TxInInfo
+findOwnInput ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scriptContextPurpose=Spending txOutRef} =
+    find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
+findOwnInput _ = Nothing
