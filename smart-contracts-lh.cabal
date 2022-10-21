@@ -23,5 +23,6 @@ library
       Auction.DatumHijacking
       Auction.Eq
       Auction.Minswap
+      Auction.MinswapNew
       Plutus
     default-language: Haskell2010
