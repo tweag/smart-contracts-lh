@@ -13,4 +13,4 @@ You might drop the `--nix` argument if `z3` is already in your PATH.
 At the moment there is only [one proof][noMinswap] of the absence of minswap in auctions.
 
 [noMinswap]: https://github.com/tweag/smart-constracts-lh/blob/main/src/Auction/Minswap.hs
-[pitch]: https://github.com/tweag/fm-meta/pull/13
+[pitch]: https://github.com/tweag/fm-meta/blob/main/pitches/liquidhaskell-for-audits.md
