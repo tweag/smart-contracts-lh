@@ -18,11 +18,13 @@ library
       liquid-base,
       liquid-bytestring,
       liquid-containers,
+      liquid-prelude,
     hs-source-dirs:   src
     exposed-modules:
       Auction.DatumHijacking
       Auction.Eq
       Auction.Minswap
       Auction.MinswapNew
+      Auction.Spendable
       Plutus
     default-language: Haskell2010

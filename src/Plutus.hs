@@ -102,6 +102,12 @@ data TxInInfo = TxInInfo
     { txInInfoOutRef   :: TxOutRef
     , txInInfoResolved :: TxOut
     }
+{-@
+data TxInInfo = TxInInfo
+    { txInInfoOutRef   :: TxOutRef
+    , txInInfoResolved :: TxOut
+    }
+@-}
 
 data TxOut = TxOut {
     txOutAddress   :: Address,
@@ -186,11 +192,17 @@ txSignedBy txi k = case find ((==) k) (txInfoSignatories txi) of
     Nothing -> False
 
 -- | Emit the given 'BuiltinString' only if the argument evaluates to 'False'.
-{-@ traceIfFalse :: BuiltinString -> x:Bool -> { v:Bool | v = x } @-}
+{-@
+reflect traceIfFalse
+traceIfFalse :: BuiltinString -> x:Bool -> { v:Bool | v = x }
+@-}
 traceIfFalse :: BuiltinString -> Bool -> Bool
 traceIfFalse str a = if a then True else trace str False
 
-{-@ trace :: BuiltinString -> x:a -> { v:a | v = x } @-}
+{-@
+reflect trace
+trace :: BuiltinString -> x:a -> { v:a | v = x }
+@-}
 trace :: BuiltinString -> a -> a
 trace _ x = x
 
