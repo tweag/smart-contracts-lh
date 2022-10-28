@@ -56,7 +56,7 @@ policy and the Auction validator.
 The following properties guarantee that the values of the transaction stay
 with the seller and the highest bidder.
 
-1. **Absense of datum hijacking**
+1. **Absence of datum hijacking**
    Before the bidding deadline, any transaction with an Auction input with
    bid redeemer which is accepted by the Auction validator has
    a unique output paying the bid and the lot to the validator.
