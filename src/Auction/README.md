@@ -45,11 +45,10 @@ We could still consider proving a few of these assumptions:
 
 ## Transaction level properties
 
-The following properties together would ensure that value can't be stolen
-or locked indefinitely. Some of them can still be checked in the
-specification of validators, other properties demand a proof of spendability,
-and absence of double satisfaction requires combinig specs of the minting
-policy and the Auction validator.
+The following properties together would ensure that no sequence of
+transactions can lead to value paid by participants to end up locked
+up indefinetely in unconsumable outputs, or to end up paid to other
+actors than the seller or the bidders.
 
 ### Non-stealing
 
