@@ -54,40 +54,49 @@ policy and the Auction validator.
 
 ### Non-stealing
 
-The following properties guarantee that the values of the transaction stay
-with the seller and the highest bidder.
+The following properties guarantee that the values of outputs paid to the
+validator stay with the seller, the highest bidder or the Auction validator
+after every transaction that spends them. This is an invariant first
+established by the transaction that creates an Auction. Then every other
+transaction that successfully consumes an output preserves this invariant.
+
+Properties (1), (2), and (3) establish the existence of expected outputs;
+while property (4) establishes that there are still as many outputs as
+expected when a transaction consumes outputs paid to more than one Auction
+validator.
 
 1. **Absence of datum hijacking**
-   Before the bidding deadline, any transaction with an Auction input with
-   bid redeemer which is accepted by the Auction validator has
-   a unique output paying the bid and the lot to the validator.
+   Before the bidding deadline, any transaction successfully consuming an
+   output from the Auction validator has a single output paid back to the
+   same validator which contains both the bid and the lot.
 
-2. Before the bidding deadline, any transaction with an Auction input with
-   bid redeemer which is accepted by the Auction validator has
-   an output paying the old bid to the old bidder.
+2. Before the bidding deadline, any transaction successfully consuming an
+   output from the Auction validator has an output paying the old bid to
+   the old bidder.
 
-3. **Absence of double satisfaction** as stated in the previous section.
-
-### Spendability
-
-The following properties guarantee spendability of outputs paid to the validator.
-Said otherwise, the contract doesn't lock values forever.
-
-1. Like "absence of datum hijacking" with the additional requirement that the
-   output is seller-and-bidder spendable[1].
-
-2. After the bidding deadline, any transaction with an Auction input which is
-   accepted by the Auction validator has either:
+3. After the bidding deadline, any transaction successfully consuming an output
+   from the Auction validator has either:
     * outputs paying the lot to the seller if there was no bid, or
     * outputs paying a bid to the seller and outputs paying the lot to a bidder
 
-[1] We define a seller-spendable output as one for which there exists a transaction
-signed only by the seller which spends the output and is accepted by the validator
-with hammer redeemer after the deadline.
+4. **Absence of double satisfaction** as stated in the previous section.
+
+### Spendability
+
+The following property together with property (3) of the previous section
+guarantee spendability of outputs paid to the validator. Said otherwise, the
+contract doesn't lock values forever. This is an invariant first established
+by the transaction that creates an Auction. Then every other transaction that
+successfully consumes an output preserves the invariant.
+
+    "absence of datum hijacking" with the additional requirement that the
+    output is seller-and-bidder spendable.
+
+We define a seller-spendable output as one for which there exists a transaction
+signed only by the seller which succesfully consumes the output after the
+deadline.
 
 We define a bidder-spendable output as one for which there exists a transaction
-signed only by a bidder which spends it and is accepted by the validator
-with bid redeemer before the bidding deadline, and there exists a transaction only signed by
-the seller which spends it and is accepted by the validator with hammer redeemer
-after the deadline.
-
+signed only by a bidder which successfully consumes the output before the
+bidding deadline, and there exists a transaction only signed by the seller
+which successfully consumes the output after the deadline.
