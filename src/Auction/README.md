@@ -2,6 +2,8 @@
 
 This directory contains some proofs for the [Auction contract][auction-contract].
 
+[auction-contract]: https://github.com/tweag/plutus-libs/blob/main/examples/src/Auction.hs
+
 The proofs ensure the absence of specific bugs.
 
 * [Minswap.hs](./Minswap.hs) excludes the minswap vulnerability
@@ -20,29 +22,58 @@ opportunity to steal some of the value of one of the auctions.
 
 Absence of double satisfaction could be expressed as follows:
 
-    If a transaction bids for two auctions and the validators accept it,
-    each auction validator is paid the expected amount.
+    If a transaction succesfully consumes outputs from an auction
+    and another script S, the seller, the bidders, and the auction
+    validator are paid sufficiently for the purposes of the auction
+    and the other script S.
 
-In the auction contract it is not possible to falsify this condition.
+Unfortunately the Auction contract allows this property to be
+falsified.
+
+The insight to exploit this vulnerability is to observe that
+no particular datum is demanded of outputs paid to the seller
+or the bidders. Thus, if a transaction works with multiple
+contracts that need to make payments to the same wallets, the
+Auction contract has no way to discern that the payments done
+by the transaction to the seller and bidders are sufficient
+given all the inputs that the transaction is consuming.
+
+### Disproving double satisfaction for continuing output
+
+Despite the aforementioned vulnerability, by the following argument,
+it is not possible to steal from outputs paid to the validator.
 First, each bid validator script is used only for a single auction.
-This is guaranteed by the use of a unique NFT whose asset
+This is guaranteed by the use of an NFT whose asset
 class is a parameter to the script. Second, to have two
-auctions accept a single bid, the output of the transaction
+Auction validators accept a single bid, the output of the transaction
 would need to be paid to the two different validator scripts,
 which is impossible to do without paying each validator the
 value of the bid.
 
-The above argument reduces the presence of double satisfaction
+For the `Bid` redeemer, which is the only redeemer producing continuing
+outputs, the above argument reduces the presence of double satisfaction
 to the presence of datum hijacking which has been disproved.
 
-We could still consider proving a few of these assumptions:
+We could consider proving some of the above:
 
 * The minting policy allows minting at most one token.
 * If the minting policy accepts a transaction that mints one token,
   it must contain a specific input. This guarantees that the minting
   policy can't accept more than one transaction that mints.
+* The Auction validator requires the NFT specified in its parameters
+  to be in the inputs of the transaction.
 
-[auction-contract]: https://github.com/tweag/plutus-libs/blob/main/examples/src/Auction.hs
+### Disproving double satisfaction in an idealized contract
+
+Let's suppose that the Auction validator demands in the datum of every
+output the `TxOutRef` of the input being validated. The
+`TxOutRef` identifies the output being consumed, and because
+it can be consumed only once, different auctions would be forced
+to pay different outputs with sufficient value to every involved
+bidder, seller, and script.
+
+One thing to prove in this setup is that the validator only accepts
+the transaction if the outputs contain the aforementioned `TxOutRef`.
 
 ## Transaction level properties
 
