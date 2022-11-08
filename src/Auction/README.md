@@ -96,5 +96,5 @@ deadline.
 
 We define a bidder-spendable output as one for which there exists a transaction
 signed only by a bidder which successfully consumes the output before the
-bidding deadline, and there exists a transaction only signed by the seller
+bidding deadline, and there exists a transaction only signed by the bidder
 which successfully consumes the output after the deadline.
