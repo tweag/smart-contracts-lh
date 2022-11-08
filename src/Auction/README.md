@@ -32,8 +32,7 @@ which is impossible to do without paying each validator the
 value of the bid.
 
 The above argument reduces the presence of double satisfaction
-to the presence of datum hijacking which has been proven to be
-absent.
+to the presence of datum hijacking which has been disproved.
 
 We could still consider proving a few of these assumptions:
 
@@ -44,3 +43,58 @@ We could still consider proving a few of these assumptions:
 
 [auction-contract]: https://github.com/tweag/plutus-libs/blob/main/examples/src/Auction.hs
 
+## Transaction level properties
+
+The following properties together would ensure that no sequence of
+transactions can lead to value paid by participants to end up locked
+up indefinetely in unconsumable outputs, or to end up paid to other
+actors than the seller or the bidders.
+
+### Non-stealing
+
+The following properties guarantee that the values of outputs paid to the
+validator stay with the seller, the highest bidder or the Auction validator
+after every transaction that spends them. This is an invariant first
+established by the transaction that creates an Auction. Then every other
+transaction that successfully consumes an output preserves this invariant.
+
+Properties (1), (2), and (3) establish the existence of expected outputs;
+while property (4) establishes that there are still as many outputs as
+expected when a transaction consumes outputs paid to more than one Auction
+validator.
+
+1. **Absence of datum hijacking**
+   Before the bidding deadline, any transaction successfully consuming an
+   output from the Auction validator has a single output paid back to the
+   same validator which contains both the bid and the lot.
+
+2. Before the bidding deadline, any transaction successfully consuming an
+   output from the Auction validator has an output paying the old bid to
+   the old bidder.
+
+3. After the bidding deadline, any transaction successfully consuming an output
+   from the Auction validator has either:
+    * outputs paying the lot to the seller if there was no bid, or
+    * outputs paying a bid to the seller and outputs paying the lot to a bidder
+
+4. **Absence of double satisfaction** as stated in the previous section.
+
+### Spendability
+
+The following property together with property (3) of the previous section
+guarantee spendability of outputs paid to the validator. Said otherwise, the
+contract doesn't lock values forever. This is an invariant first established
+by the transaction that creates an Auction. Then every other transaction that
+successfully consumes an output preserves the invariant.
+
+    "absence of datum hijacking" with the additional requirement that the
+    output is seller-and-bidder spendable.
+
+We define a seller-spendable output as one for which there exists a transaction
+signed only by the seller which succesfully consumes the output after the
+deadline.
+
+We define a bidder-spendable output as one for which there exists a transaction
+signed only by a bidder which successfully consumes the output before the
+bidding deadline, and there exists a transaction only signed by the bidder
+which successfully consumes the output after the deadline.
