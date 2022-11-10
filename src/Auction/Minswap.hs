@@ -110,7 +110,7 @@ mkPolicy
 @-}
 mkPolicy :: PolicyParams -> Pl.Address -> Pl.ScriptContext -> Bool
 mkPolicy (PolicyParams tName lotOref lot) validator ctx
-  | amnt ctx tName == Just 1 =
+  | amnt == Just 1 =
       Pl.traceIfFalse
         "Lot UTxO not consumed"
         (any (\i -> Pl.txInInfoOutRef i == lotOref) $ Pl.txInfoInputs txi)
@@ -125,32 +125,26 @@ mkPolicy (PolicyParams tName lotOref lot) validator ctx
               "Validator not in 'NoBids'-state on freshly opened auction"
               (outputAuctionState txi o == Just NoBids)
         _ -> Pl.trace "There must be exactly one output to the validator on a fresh auction" False
-  | amnt ctx tName == Just (-1) = True
+  | amnt == Just (-1) = True
   | otherwise = False
   where
     txi = Pl.scriptContextTxInfo ctx
+
     Pl.Minting me = Pl.scriptContextPurpose ctx
 
     token :: Pl.Value
     token = Pl.singleton me tName 1
 
--- | @amnt@ returns the amount of tokens that a transaction wants to mint with a
--- particular asset class, but only does so if the transaction only mints tokens
--- of one asset class. The specification establishes this formally, and LH is
--- able to prove it without further help.
-{-@
-amnt
-  :: { ctx:Pl.ScriptContext | is$Plutus.Minting (Pl.scriptContextPurpose ctx) }
-  -> tName:Pl.TokenName
-  -> { v:Maybe Integer | isJust v => noMinswap ctx tName v }
-@-}
-amnt :: Pl.ScriptContext -> Pl.TokenName -> Maybe Integer
-amnt ctx tName =
-   case flattenValueR (Pl.txInfoMint txi) of
-     [(cs, tn, a)] | cs == Pl.ownCurrencySymbol ctx && tn == tName -> Just a
-     _ -> Nothing
-  where
-    txi = Pl.scriptContextTxInfo ctx
+    -- @amnt@ returns the amount of tokens that a transaction wants to mint with a
+    -- particular asset class, but only does so if the transaction only mints tokens
+    -- of one asset class. The specification establishes this formally, and LH is
+    -- able to prove it without further help.
+    {-@ amnt :: { v:Maybe Integer | isJust v => noMinswap ctx tName v } @-}
+    amnt :: Maybe Integer
+    amnt =
+      case flattenValueR (Pl.txInfoMint txi) of
+        [(cs, tn, a)] | cs == Pl.ownCurrencySymbol ctx && tn == tName -> Just a
+        _ -> Nothing
 
 --------------------------------------------------
 -- Limitations
@@ -175,10 +169,6 @@ amnt ctx tName =
 --   If a validation script is supposed to produce an exception on
 --   certain inputs, LH is unable to specify it. In order to reason with
 --   these scripts, we would need to change them to make them total.
---
--- * functions in where clauses need to be moved to the top level to give them a specification
---   This is the case for @amnt@ above. Perhaps LH can be enhanced to support
---   specifications in local definitions.
 --
 -- * need to write specs for the functions to manipulate Value
 --   We will have to write specifications for the operations of Values to
