@@ -373,6 +373,17 @@ lemmaGetContinuingOutputsUpdCtx
   -> ()
 lemmaGetContinuingOutputsUpdCtx bid bidder ctx0 o ctx1 = ()
 
+
+-- This lemma states that outputAuctionState yields the same result when
+-- given the original ScriptContext and when given the ScriptContext of
+-- the example transaction that should allow to spend the continuing
+-- output.
+--
+-- It would be a choice of the programmer to leave the lemma as an assumption
+-- or go through the trouble of proving it further, probably by introducing
+-- further lemmas abount how the functions used by outputAuctionState deal
+-- with the context.
+
 {-@
 assume lemmaOutputAuctionStateUpdCtx
   :: bid:Integer
