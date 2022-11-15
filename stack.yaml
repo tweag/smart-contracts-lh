@@ -5,7 +5,7 @@ extra-deps:
 - hashable-1.3.5.0
 - rest-rewrite-0.3.0
 - git: https://github.com/ucsd-progsys/liquidhaskell
-  commit: 24be57c2a9e4f01bf595e90b76ab34cc3eb3fab3
+  commit: 7deaac6cef43d6247e0a1ab26e982b7ed20a9a44
   subdirs:
     - .
     - liquid-base
@@ -15,7 +15,7 @@ extra-deps:
     - liquid-prelude
     - liquid-vector
 - git: https://github.com/ucsd-progsys/liquid-fixpoint
-  commit: fcce61041a4a5d13d508bde3fe95ed1ba614acd4
+  commit: e20f1128295b21a87dc2b344b0ba76bbf37441f1
 
 resolver: lts-18.27
 nix:
