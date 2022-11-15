@@ -59,18 +59,20 @@ hasOnlyOneContinuingOutputWithDatum ctx datum =
        _ -> False
 
 {-@
-reflect getContinuingOutputs
-lazy getContinuingOutputs
+measure Auction.DatumHijacking.getContinuingOutputs :: Pl.ScriptContext -> [Pl.TxOut]
+assume getContinuingOutputs
+  :: x:Pl.ScriptContext -> {v:[Pl.TxOut] | Auction.DatumHijacking.getContinuingOutputs x = v }
 @-}
 getContinuingOutputs :: Pl.ScriptContext -> [Pl.TxOut]
-getContinuingOutputs = getContinuingOutputs
+getContinuingOutputs = undefined
 
 {-@
-reflect outputAuctionState
-lazy outputAuctionState
+measure Auction.DatumHijacking.outputAuctionState :: Pl.TxInfo -> Pl.TxOut -> Maybe AuctionState
+assume outputAuctionState
+  :: x:Pl.TxInfo -> y:Pl.TxOut -> { v:Maybe AuctionState | Auction.DatumHijacking.outputAuctionState x y = v }
 @-}
 outputAuctionState :: Pl.TxInfo -> Pl.TxOut -> Maybe AuctionState
-outputAuctionState = outputAuctionState
+outputAuctionState = undefined
 
 bidTimeRange :: ValParams -> Pl.POSIXTimeRange
 bidTimeRange a = Pl.to (bidDeadline a)

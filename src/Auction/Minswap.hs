@@ -67,7 +67,7 @@ noMinswap
 noMinswap ctx tokenName (Just amount) =
     case Pl.scriptContextPurpose ctx of
       Pl.Minting currencySymbol ->
-        flattenValueR (Pl.txInfoMint (Pl.scriptContextTxInfo ctx))
+        Pl.flattenValue (Pl.txInfoMint (Pl.scriptContextTxInfo ctx))
         ==
         [(currencySymbol, tokenName, amount)]
       _ ->
@@ -142,7 +142,7 @@ mkPolicy (PolicyParams tName lotOref lot) validator ctx
     {-@ amnt :: { v:Maybe Integer | isJust v => noMinswap ctx tName v } @-}
     amnt :: Maybe Integer
     amnt =
-      case flattenValueR (Pl.txInfoMint txi) of
+      case Pl.flattenValue (Pl.txInfoMint txi) of
         [(cs, tn, a)] | cs == Pl.ownCurrencySymbol ctx && tn == tName -> Just a
         _ -> Nothing
 
@@ -155,7 +155,7 @@ mkPolicy (PolicyParams tName lotOref lot) validator ctx
 -- * liquid-base expects a version of base which is newer than the one provided by ghc-8.10.4.20210212.
 --   LH sometimes depends on libraries like liquid-base or liquid-bytestring
 --   which need to match the versions of the libraries used by a particular
---   version of ghc. This can make a challenge to support mutliple compiler
+--   version of ghc. This can make a challenge to support multiple compiler
 --   versions. We might be able to come up with a scheme were we can reuse
 --   code across different versions of these libraries.
 --
@@ -182,8 +182,10 @@ mkPolicy (PolicyParams tName lotOref lot) validator ctx
 --   information in the error without having to dive into file dumps.
 --
 -- * allow to reflect functions which call non-reflected functions
---   We have to introduce @flattenValueR@ only to be able to reflect @noMinswap@
---   Ideally, we wouldn't have to do this.
+--   We have to use measure and assume with @flattenValue@ only to reflect
+--   @noMinswap@ without reflecting @flattenValue@. Ideally, we wouldn't have
+--   to do this. It is both undocumented in LH and harder to use correctly
+--   than it needs be.
 --
 -- * redundant transitive imports are sometimes needeed to avoid crashes
 --   For instance importing Data.ByteString as done in this module
@@ -192,24 +194,20 @@ mkPolicy (PolicyParams tName lotOref lot) validator ctx
 --   We avoid this by making BuiltinString a synonim of String.
 --
 
--- | @flattenValueR@ is a device we use to refer to flattening of values
--- in specifications, without having LH bring to the logic the actual
--- implementation of @flattenValue@. With an ideal LH, we would be able
--- to have the implementation of the minting policy refer to the original
--- @flattenValue@, and the specifications would use an uninterpreted
--- function like this @flattenValueR@.
+-- The following directives allow to use @Plutus.flattenValue@ in the logic
+-- without having LH reflecting the actual implementation. With an ideal LH,
+-- we would be able to achieve the same with a more straightforward
+-- (and documented!) declaration.
 --
--- The meaning of @flattenValueR@ doesn't play a role in the proof, and
+-- The meaning of @flattenValue@ doesn't play a role in the proof, and
 -- therefore we can omit it in this particular case. It is up to the user
--- to ensure that @flattenValueR@ is used correctly in the definition of
+-- to ensure that @flattenValue@ is used correctly in the definition of
 -- @noMinswap@.
 {-@
-reflect flattenValueR
-lazy flattenValueR
+measure Plutus.flattenValue :: Pl.Value -> [(Pl.CurrencySymbol, Pl.TokenName, Integer)]
+assume Pl.flattenValue
+  :: x:Pl.Value -> {v:[(Pl.CurrencySymbol, Pl.TokenName, Integer)] | Plutus.flattenValue x = v }
 @-}
-flattenValueR :: Pl.Value -> [(Pl.CurrencySymbol, Pl.TokenName, Integer)]
-flattenValueR v = flattenValueR v
-
 
 --------------------------------------------------
 -- Auxiliary definitions

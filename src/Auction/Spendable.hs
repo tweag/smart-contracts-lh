@@ -89,45 +89,45 @@ uniqueContinuingOutputWithDatum ctx datum = pleUnfold
         Nothing)
 
 {-@
-reflect getContinuingOutputs
-lazy getContinuingOutputs
+measure Auction.Spendable.getContinuingOutputs :: Pl.ScriptContext -> [Pl.TxOut]
+assume getContinuingOutputs
+  :: x:Pl.ScriptContext -> {v:[Pl.TxOut] | Auction.Spendable.getContinuingOutputs x = v }
 @-}
 getContinuingOutputs :: Pl.ScriptContext -> [Pl.TxOut]
-getContinuingOutputs = getContinuingOutputs
+getContinuingOutputs = undefined
 
 {-@
-reflect outputAuctionState
-lazy outputAuctionState
+measure Auction.Spendable.outputAuctionState :: Pl.TxInfo -> Pl.TxOut -> Maybe AuctionState
+assume outputAuctionState
+  :: x:Pl.TxInfo -> y:Pl.TxOut -> { v:Maybe AuctionState | Auction.Spendable.outputAuctionState x y = v }
 @-}
 outputAuctionState :: Pl.TxInfo -> Pl.TxOut -> Maybe AuctionState
-outputAuctionState = outputAuctionState
+outputAuctionState = undefined
 
 {-@
-lazy bidTimeRangeR
-reflect bidTimeRangeR
+measure Auction.Spendable.bidTimeRange :: ValParams -> Pl.POSIXTimeRange
+assume bidTimeRange
+  :: x:ValParams -> { v:Pl.POSIXTimeRange | Auction.Spendable.bidTimeRange x = v }
 @-}
-bidTimeRangeR :: ValParams -> Pl.POSIXTimeRange
-bidTimeRangeR = bidTimeRangeR
-
 bidTimeRange :: ValParams -> Pl.POSIXTimeRange
 bidTimeRange a = Pl.to (bidDeadline a)
-
-{-@
-reflect bidDeadlineR
-lazy bidDeadlineR
-@-}
-bidDeadlineR :: ValParams -> Pl.POSIXTime
-bidDeadlineR = bidDeadlineR
 
 bidDeadline :: ValParams -> Pl.POSIXTime
 bidDeadline = bidDeadline' . staticValParams
 
-{-@ reflect minBid @-}
+{-@
+measure Auction.Spendable.minBid :: ValParams -> Integer
+assume minBid
+  :: x:ValParams -> { v:Integer | Auction.Spendable.minBid x = v }
+@-}
 minBid :: ValParams -> Integer
 minBid p = minBid' (staticValParams p)
 
-{-@ reflect lot @-}
-{-@ lazy lot @-}
+{-@
+measure Auction.Spendable.lot :: ValParams -> Pl.Value
+assume lot
+  :: x:ValParams -> { v:Pl.Value | Auction.Spendable.lot x = v }
+@-}
 lot :: ValParams -> Pl.Value
 lot p = lot' (staticValParams p)
 
@@ -136,62 +136,57 @@ lot p = lot' (staticValParams p)
 receivesFrom :: Pl.TxInfo -> Pl.PubKeyHash -> Pl.Value -> Bool
 receivesFrom txi who what = Pl.valuePaidTo txi who `Pl.geq` what
 
-{-@ reflect receivesFromR @-}
-{-@ lazy receivesFromR @-}
-receivesFromR :: Pl.TxInfo -> Pl.PubKeyHash -> Pl.Value -> Bool
-receivesFromR = receivesFromR
+{-@
+measure Auction.Spendable.receivesFrom :: Pl.TxInfo -> Pl.PubKeyHash -> Pl.Value -> Bool
+assume receivesFrom
+  :: x:Pl.TxInfo -> y:Pl.PubKeyHash -> z:Pl.Value -> { v:Bool | Auction.Spendable.receivesFrom x y z = v }
+@-}
 
 {-@
-reflect ownHashR
-lazy ownHashR
+measure Plutus.ownHash :: Pl.ScriptContext -> Pl.ValidatorHash
+assume Pl.ownHash :: x:Pl.ScriptContext -> { v:Pl.ValidatorHash | Plutus.ownHash x = v }
 @-}
-ownHashR :: Pl.ScriptContext -> Pl.ValidatorHash
-ownHashR = ownHashR
-
-{-@ reflect containsR @-}
-{-@ lazy containsR @-}
-containsR :: Ord a => Pl.Interval a -> Pl.Interval a -> Bool
-containsR = containsR
-
-{-@ reflect lovelaceValueOfR @-}
-{-@ lazy lovelaceValueOfR @-}
-lovelaceValueOfR :: Integer -> Pl.Value
-lovelaceValueOfR = lovelaceValueOfR
 
 {-@
-reflect geqR
-lazy geqR
+measure Plutus.contains :: Ord a => Pl.Interval a -> Pl.Interval a -> Bool
+assume Pl.contains :: Ord a => x:Pl.Interval a -> y:Pl.Interval a -> { v:Bool | Plutus.contains x y = v }
 @-}
-geqR :: Pl.Value -> Pl.Value -> Bool
-geqR = geqR
 
 {-@
-reflect txSignedByR
-lazy txSignedByR
+measure Plutus.lovelaceValueOf :: Integer -> Pl.Value
+assume Pl.lovelaceValueOf :: x:Integer -> { v:Pl.Value | Plutus.lovelaceValueOf x = v }
 @-}
-txSignedByR :: Pl.TxInfo -> Pl.PubKeyHash -> Bool
-txSignedByR = txSignedByR
 
 {-@
-reflect valueLockedByR
-lazy valueLockedByR
+measure Plutus.geq :: Ord a => Pl.Value -> Pl.Value -> Bool
+assume Pl.geq :: Ord a => x:Pl.Value -> y:Pl.Value -> { v:Bool | Plutus.geq x y = v }
 @-}
-valueLockedByR :: Pl.TxInfo -> Pl.ValidatorHash -> Pl.Value
-valueLockedByR = valueLockedByR
 
 {-@
-reflect addR
-lazy addR
+measure Plutus.txSignedBy :: Pl.TxInfo -> Pl.PubKeyHash -> Bool
+assume Pl.txSignedBy
+  :: x:Pl.TxInfo -> y:Pl.PubKeyHash -> { v:Bool | Plutus.txSignedBy x y = v }
 @-}
-addR :: Pl.Value -> Pl.Value -> Pl.Value
-addR = addR
 
 {-@
-reflect assetClassValueR
-lazy assetClassValueR
+measure Plutus.valueLockedBy :: Pl.TxInfo -> Pl.ValidatorHash -> Pl.Value
+assume Pl.valueLockedBy
+  :: x:Pl.TxInfo -> y:Pl.ValidatorHash -> { v:Pl.Value | Plutus.valueLockedBy x y = v }
 @-}
-assetClassValueR :: Pl.AssetClass -> Integer -> Pl.Value
-assetClassValueR = assetClassValueR
+
+{-@
+measure add :: Pl.Value -> Pl.Value -> Pl.Value
+assume add
+  :: x:Pl.Value -> y:Pl.Value -> { v:Pl.Value | add x y = v }
+@-}
+add :: Pl.Value -> Pl.Value -> Pl.Value
+add = undefined
+
+{-@
+measure Plutus.assetClassValue :: Pl.AssetClass -> Integer -> Pl.Value
+assume Pl.assetClassValue
+  :: x:Pl.AssetClass -> y:Integer -> { v:Pl.Value | Plutus.assetClassValue x y = v }
+@-}
 
 {-@ reflect updCtx @-}
 updCtx :: Pl.ScriptContext -> Integer -> Pl.PubKeyHash -> Pl.ScriptContext
@@ -252,20 +247,20 @@ validBid
 validBid :: ValParams -> AuctionState -> Integer -> Pl.PubKeyHash -> Pl.ScriptContext -> Bool
 validBid auction datum bid bidder ctx =
   let txi = Pl.scriptContextTxInfo ctx
-      selfh = ownHashR ctx
-      receives = receivesFromR txi
+      selfh = Pl.ownHash ctx
+      receives = receivesFrom txi
    in
    {-
       Pl.traceIfFalse
         "Bidding past the deadline is not permitted"
-        (bidTimeRangeR auction `containsR` Pl.txInfoValidRange txi)
+        (bidTimeRange auction `containsR` Pl.txInfoValidRange txi)
       &&
-        Pl.traceIfFalse "Bid transaction not signed by bidder" (txi `txSignedByR` bidder)
+        Pl.traceIfFalse "Bid transaction not signed by bidder" (txi `txSignedBy` bidder)
       && Pl.traceIfFalse
           "Validator does not lock lot, bid, and thread token"
-          ( valueLockedByR txi selfh
-              `geqR` ( lot auction `addR` (lovelaceValueOfR bid
-                        `addR` assetClassValueR (threadTokenAssetClass auction) 1)
+          ( valueLockedBy txi selfh
+              `geq` ( lot auction `add` (lovelaceValueOfR bid
+                        `add` assetClassValue (threadTokenAssetClass auction) 1)
                     )
           )
       && -}
@@ -279,7 +274,7 @@ validBid auction datum bid bidder ctx =
             Pl.traceIfFalse "Must bid more than the last bid" (lastBid < bid)
               && Pl.traceIfFalse
                 "Last bidder is not paid back"
-                (lastBidder `receives` lovelaceValueOfR lastBid)
+                (lastBidder `receives` lovelaceValueOf lastBid)
 -}
 
 

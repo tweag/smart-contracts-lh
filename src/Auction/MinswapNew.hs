@@ -29,7 +29,7 @@ noMinswap
 noMinswap ctx tokenName (Just amount) =
     case Pl.scriptContextPurpose ctx of
       Pl.Minting currencySymbol ->
-        flattenValueR (Pl.txInfoMint (Pl.scriptContextTxInfo ctx))
+        Pl.flattenValue (Pl.txInfoMint (Pl.scriptContextTxInfo ctx))
         ==
         [(currencySymbol, tokenName, amount)]
       _ ->
@@ -84,16 +84,16 @@ amnt ctx tName =
               else n
         )
         0
-        $ flattenValueR (Pl.txInfoMint txi)
+        $ Pl.flattenValue (Pl.txInfoMint txi)
   where
     txi = Pl.scriptContextTxInfo ctx
 
 {-@
-reflect flattenValueR
-lazy flattenValueR
+measure Plutus.flattenValue :: Pl.Value -> [(Pl.CurrencySymbol, Pl.TokenName, Integer)]
+assume Pl.flattenValue
+  :: x:Pl.Value -> {v:[(Pl.CurrencySymbol, Pl.TokenName, Integer)] | Plutus.flattenValue x = v }
 @-}
-flattenValueR :: Pl.Value -> [(Pl.CurrencySymbol, Pl.TokenName, Integer)]
-flattenValueR v = flattenValueR v
+
 
 
 --------------------------------------------------
