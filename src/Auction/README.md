@@ -6,7 +6,9 @@ This directory contains some proofs for the [Auction contract][auction-contract]
 
 The proofs ensure the absence of specific bugs.
 
-* [Minswap.hs](./Minswap.hs) excludes the minswap vulnerability
+* [Minswap.hs](./Minswap.hs) excludes the minswap vulnerability. This is
+  the most commented module and should be the first read for those unfamiliar
+  with Liquid Haskell.
 * [MinswapNew.hs](./MinswapNew.hs) shows how Liquid Haskell fails when
   the implementation has the minswap bug.
 * [DatumHijacking.hs](./DatumHijacking.hs) excludes the datum hijacking vulnerability
