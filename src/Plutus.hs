@@ -14,6 +14,7 @@ newtype TokenName = TokenName { unTokenName :: BuiltinByteString }
   deriving Eq
 
 newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
+  deriving Eq
 
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: BuiltinByteString }
   deriving Eq
@@ -107,7 +108,6 @@ data TxInInfo = TxInInfo
     { txInInfoOutRef   :: TxOutRef
     , txInInfoResolved :: TxOut
     }
-@-}
 
 data TxOut = TxOut {
     txOutAddress   :: Address,
@@ -115,9 +115,21 @@ data TxOut = TxOut {
     txOutDatumHash :: Maybe DatumHash
     }
 
+@-}
+
+data TxOut = TxOut {
+    txOutAddress   :: Address,
+    txOutValue     :: Value,
+    txOutDatumHash :: Maybe DatumHash
+    }
+  deriving Eq
+
 newtype DatumHash =
     DatumHash BuiltinByteString
+  deriving Eq
 
+datumHash :: Datum -> DatumHash
+datumHash = undefined
 
 newtype Datum = Datum { getDatum :: BuiltinData  }
 

@@ -175,9 +175,9 @@ assume Pl.valueLockedBy
 @-}
 
 {-@
-measure add :: Pl.Value -> Pl.Value -> Pl.Value
+measure Auction.Spendable.add :: Pl.Value -> Pl.Value -> Pl.Value
 assume add
-  :: x:Pl.Value -> y:Pl.Value -> { v:Pl.Value | add x y = v }
+  :: x:Pl.Value -> y:Pl.Value -> { v:Pl.Value | Auction.Spendable.add x y = v }
 @-}
 add :: Pl.Value -> Pl.Value -> Pl.Value
 add = undefined
@@ -188,30 +188,57 @@ assume Pl.assetClassValue
   :: x:Pl.AssetClass -> y:Integer -> { v:Pl.Value | Plutus.assetClassValue x y = v }
 @-}
 
+{-@
+measure Plutus.datumHash :: Pl.Datum -> Pl.DatumHash
+assume Pl.datumHash :: x:Pl.Datum -> { v:Pl.DatumHash | Plutus.datumHash x = v }
+@-}
+
+{-@
+measure Auction.Spendable.toDatum :: AuctionState -> Pl.Datum
+assume toDatum
+  :: x:AuctionState -> { v:Pl.Datum | Auction.Spendable.toDatum x = v }
+@-}
+toDatum :: AuctionState -> Pl.Datum
+toDatum = undefined -- Pl.Datum . Pl.toBuiltinData
+
 {-@ reflect updCtx @-}
 updCtx :: Pl.ScriptContext -> Integer -> Pl.PubKeyHash -> Pl.ScriptContext
 updCtx ctx bid bidder =
   case uniqueContinuingOutputWithDatum ctx (Bidding (BidderInfo bid bidder)) of
     Nothing -> ctx
-    Just o -> ctx
-      { Pl.scriptContextTxInfo =
-        (Pl.scriptContextTxInfo ctx)
-          { Pl.txInfoInputs =
-              replaceTxOut
-                (spentOut (Pl.scriptContextPurpose ctx))
-                o
-                (Pl.txInfoInputs
-                   (Pl.scriptContextTxInfo ctx)
-                )
+    Just o ->
+      let txi = Pl.scriptContextTxInfo ctx
+          newDatum = toDatum (Bidding (BidderInfo (bid + 1) bidder))
+          newDatumHash = Pl.datumHash newDatum
+          o' = o
+            { Pl.txOutValue = add (Pl.txOutValue o) (Pl.lovelaceValueOf 1)
+            }
+          newo = o' { Pl.txOutDatumHash = Just newDatumHash }
+       in ctx
+          { Pl.scriptContextTxInfo = txi
+              { Pl.txInfoInputs =
+                  replaceTxOutRef
+                    (spentOut (Pl.scriptContextPurpose ctx))
+                    o'
+                    (Pl.txInfoInputs txi)
+              , Pl.txInfoOutputs = replaceTxOut o' newo (Pl.txInfoOutputs txi)
+              , Pl.txInfoData = (newDatumHash, newDatum) : Pl.txInfoData txi
+              }
           }
-      }
 
 {-@ reflect replaceTxOut @-}
-replaceTxOut :: Maybe Pl.TxOutRef -> Pl.TxOut -> [Pl.TxInInfo] -> [Pl.TxInInfo]
-replaceTxOut i o [] = []
-replaceTxOut i o (x:xs)
+replaceTxOut :: Pl.TxOut -> Pl.TxOut -> [Pl.TxOut] -> [Pl.TxOut]
+replaceTxOut o _newo [] = []
+replaceTxOut o newo (x:xs) =
+    if o == x then newo : xs
+    else x : replaceTxOut o newo xs
+
+{-@ reflect replaceTxOutRef @-}
+replaceTxOutRef :: Maybe Pl.TxOutRef -> Pl.TxOut -> [Pl.TxInInfo] -> [Pl.TxInInfo]
+replaceTxOutRef i o [] = []
+replaceTxOutRef i o (x:xs)
   | Just (Pl.txInInfoOutRef x) == i = x { Pl.txInInfoResolved = o } : xs
-  | otherwise = x : replaceTxOut i o xs
+  | otherwise = x : replaceTxOutRef i o xs
 
 {-@ reflect spentOut @-}
 spentOut :: Pl.ScriptPurpose -> Maybe Pl.TxOutRef
@@ -232,7 +259,7 @@ validBid
   -> ctx:Pl.ScriptContext
   -> { v:Bool
      | v => hasOnlyOneContinuingOutputWithDatum ctx (Bidding (BidderInfo bid bidder))
- //           && validBid auction datum bid bidder (updCtx ctx bid bidder)
+ //           && validBid auction datum (bid + 1) bidder (updCtx ctx bid bidder)
      }
 @-}
 
@@ -286,11 +313,11 @@ validBid auction datum bid bidder ctx =
 -- The specification of 'checkOutput' is rejected when we demand that
 -- the produced datum is spendable
 --
---     "checkOutput (updCtx ctx bid bidder) bid bidder"
+--     "checkOutput (updCtx ctx bid bidder) (bid + 1) bidder"
 --
--- LH is not able to prove it for some reason that needs to be debugged.
+-- LH is not able to prove it because of
+-- https://github.com/ucsd-progsys/liquidhaskell/issues/2109
 --
--- Using assume also causes the caller of checkOutput to fail.
 
 {-@
 reflect checkOutput
@@ -300,7 +327,7 @@ checkOutput
   -> bidder:Pl.PubKeyHash
   -> { v:Bool
      | v => hasOnlyOneContinuingOutputWithDatum ctx (Bidding (BidderInfo bid bidder))
-   //         && checkOutput (updCtx ctx bid bidder) bid bidder
+           // checkOutput (updCtx ctx bid bidder) (bid + 1) bidder
      }
 @-}
 checkOutput :: Pl.ScriptContext -> Integer -> Pl.PubKeyHash -> Bool
@@ -341,22 +368,11 @@ assume lemmaGetContinuingOutputsUpdCtx
   :: bid:Integer
   -> bidder:Pl.PubKeyHash
   -> ctx0:Pl.ScriptContext
-  -> { o:Pl.TxOut | Just o = uniqueContinuingOutputWithDatum ctx0 (Bidding (BidderInfo bid bidder)) }
+  -> { o:Pl.TxOut | true } // Just o = uniqueContinuingOutputWithDatum ctx0 (Bidding (BidderInfo bid bidder)) }
   -> { ctx1:Pl.ScriptContext
-     | Pl.txInfoInputs (Pl.scriptContextTxInfo ctx1)
-         =
-            replaceTxOut
-              (spentOut (Pl.scriptContextPurpose ctx0))
-              o
-              (Pl.txInfoInputs
-                 (Pl.scriptContextTxInfo ctx0)
-              )
-       &&
-         Pl.txInfoOutputs (Pl.scriptContextTxInfo ctx0)
-           =
-         Pl.txInfoOutputs (Pl.scriptContextTxInfo ctx1)
+     | updCtx ctx0 bid bidder = ctx1
      }
-  -> { getContinuingOutputs ctx0 = getContinuingOutputs ctx1
+  -> { isSingleton (getContinuingOutputs ctx1)
      }
 @-}
 lemmaGetContinuingOutputsUpdCtx
@@ -368,15 +384,18 @@ lemmaGetContinuingOutputsUpdCtx
   -> ()
 lemmaGetContinuingOutputsUpdCtx bid bidder ctx0 o ctx1 = ()
 
+{-@ reflect isSingleton @-}
+isSingleton :: [a] -> Bool
+isSingleton [_] = True
+isSingleton _ = False
 
--- This lemma states that outputAuctionState yields the same result when
--- given the original ScriptContext and when given the ScriptContext of
--- the example transaction that should allow to spend the continuing
--- output.
+-- This lemma states that outputAuctionState yields the expected result when
+-- given the ScriptContext of the example transaction that should allow to
+-- spend the continuing output.
 --
 -- It would be a choice of the programmer to leave the lemma as an assumption
 -- or go through the trouble of proving it further, probably by introducing
--- further lemmas abount how the functions used by outputAuctionState deal
+-- further lemmas about how the functions used by outputAuctionState deal
 -- with the context.
 
 {-@
@@ -386,20 +405,10 @@ assume lemmaOutputAuctionStateUpdCtx
   -> ctx0:Pl.ScriptContext
   -> { o:Pl.TxOut | Just o = uniqueContinuingOutputWithDatum ctx0 (Bidding (BidderInfo bid bidder)) }
   -> { ctx1:Pl.ScriptContext
-     | Pl.txInfoInputs (Pl.scriptContextTxInfo ctx1)
-         =
-            replaceTxOut
-              (spentOut (Pl.scriptContextPurpose ctx0))
-              o
-              (Pl.txInfoInputs
-                 (Pl.scriptContextTxInfo ctx0)
-              )
-       &&
-         Pl.txInfoOutputs (Pl.scriptContextTxInfo ctx0)
-           =
-         Pl.txInfoOutputs (Pl.scriptContextTxInfo ctx1)
+     | updCtx ctx0 bid bidder = ctx1
      }
-  -> { outputAuctionState (Pl.scriptContextTxInfo ctx0) o = outputAuctionState (Pl.scriptContextTxInfo ctx1) o
+  -> { outputAuctionState (Pl.scriptContextTxInfo ctx1) o
+        = Just (Bidding (BidderInfo (1 + bid) bidder))
      }
 @-}
 lemmaOutputAuctionStateUpdCtx
