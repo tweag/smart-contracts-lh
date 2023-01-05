@@ -12,7 +12,7 @@ The proofs ensure the absence of specific bugs.
 * [MinswapNew.hs](./MinswapNew.hs) shows how Liquid Haskell fails when
   the implementation has the minswap bug.
 * [DatumHijacking.hs](./DatumHijacking.hs) excludes the datum hijacking vulnerability
-* [Spendability.hs](./Spendability.hs) attempts a proof of spendability
+* [Spendable.hs](./Spendable.hs) attempts a proof of spendability
 
 ## Double satisfaction
 
