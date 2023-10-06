@@ -13,6 +13,11 @@ The proofs ensure the absence of specific bugs.
   the implementation has the minswap bug.
 * [DatumHijacking.hs](./DatumHijacking.hs) excludes the datum hijacking vulnerability
 * [Spendable.hs](./Spendable.hs) attempts a proof of spendability
+* [Eq.hs](./Eq.hs) rehearses the ability of LH to check that an Eq instance in defined correctly
+
+The rest of this file discusses how to prove the absence of some vulnerabilities
+with pen and paper, and identifies some fragments that could be feasible
+to prove with Liquid Haskell.
 
 ## Double satisfaction
 
@@ -43,7 +48,7 @@ given all the inputs that the transaction is consuming.
 ### Disproving double satisfaction for continuing output
 
 Despite the aforementioned vulnerability, by the following argument,
-it is not possible to steal from outputs paid to the validator.
+it is not possible to exploit it for outputs paid to the validator.
 First, each bid validator script is used only for a single auction.
 This is guaranteed by the use of an NFT whose asset
 class is a parameter to the script. Second, to have two
@@ -56,7 +61,7 @@ For the `Bid` redeemer, which is the only redeemer producing continuing
 outputs, the above argument reduces the presence of double satisfaction
 to the presence of datum hijacking which has been disproved.
 
-We could consider proving some of the above:
+We could consider proving some of the above with Liquid Haskell:
 
 * The minting policy allows minting at most one token.
 * If the minting policy accepts a transaction that mints one token,
@@ -74,7 +79,7 @@ it can be consumed only once, different auctions would be forced
 to pay different outputs with sufficient value to every involved
 bidder, seller, and script.
 
-One thing to prove in this setup is that the validator only accepts
+One thing to prove with Liquid Haskell is that the validator only accepts
 the transaction if the outputs contain the aforementioned `TxOutRef`.
 
 ## Transaction level properties
