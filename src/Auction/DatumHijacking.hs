@@ -27,8 +27,7 @@ data StaticValParams = StaticValParams
 data ValParams = ValParams
   { staticValParams :: StaticValParams,
     -- | address of the seller
-    seller :: Pl.PubKeyHash,
-    threadTokenAssetClass :: Pl.AssetClass
+    seller :: Pl.PubKeyHash
   }
 
 -- | The state of the auction. This will be the 'DatumType'.
@@ -125,9 +124,7 @@ validBid auction datum bid bidder ctx =
       && Pl.traceIfFalse
           "Validator does not lock lot, bid, and thread token"
           ( Pl.valueLockedBy txi selfh
-              `Pl.geq` ( lot auction <> Pl.lovelaceValueOf bid
-                           <> Pl.assetClassValue (threadTokenAssetClass auction) 1
-                       )
+              `Pl.geq` (lot auction <> Pl.lovelaceValueOf bid)
           )
       &&
         checkOutput ctx bid bidder
