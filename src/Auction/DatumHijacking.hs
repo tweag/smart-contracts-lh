@@ -124,7 +124,7 @@ validBid auction datum bid bidder ctx =
       && Pl.traceIfFalse
           "Validator does not lock lot, bid, and thread token"
           ( Pl.valueLockedBy txi selfh
-              `Pl.geq` (lot auction <> Pl.lovelaceValueOf bid)
+              `Pl.geq` Pl.addValues (lot auction) (Pl.lovelaceValueOf bid)
           )
       &&
         checkOutput ctx bid bidder

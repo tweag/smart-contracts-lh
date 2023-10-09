@@ -294,3 +294,11 @@ findOwnInput :: ScriptContext -> Maybe TxInInfo
 findOwnInput ScriptContext{scriptContextTxInfo=TxInfo{txInfoInputs}, scriptContextPurpose=Spending txOutRef} =
     find (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == txOutRef) txInfoInputs
 findOwnInput _ = Nothing
+
+{-@
+measure Plutus.addValues :: Value -> Value -> Value
+assume addValues :: x:Value -> y:Value -> {v:Value | Plutus.addValues x y = v }
+ignore addValues
+@-}
+addValues :: Value -> Value -> Value
+addValues = (<>)
