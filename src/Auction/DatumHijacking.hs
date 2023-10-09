@@ -104,6 +104,8 @@ validBid
   -> ctx:Pl.ScriptContext
   -> { v:Bool
      | v => hasOnlyOneContinuingOutputWithDatum ctx (Bidding (BidderInfo bid bidder))
+            && Pl.geq (Pl.valueLockedBy (Pl.scriptContextTxInfo ctx) (Pl.ownHash ctx))
+                      (Pl.addValues (lot auction) (Pl.lovelaceValueOf bid))
      }
 @-}
 
