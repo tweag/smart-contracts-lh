@@ -143,35 +143,14 @@ assume receivesFrom
 @-}
 
 {-@
-measure Plutus.ownHash :: Pl.ScriptContext -> Pl.ValidatorHash
-assume Pl.ownHash :: x:Pl.ScriptContext -> { v:Pl.ValidatorHash | Plutus.ownHash x = v }
-@-}
-
-{-@
 measure Plutus.contains :: Ord a => Pl.Interval a -> Pl.Interval a -> Bool
 assume Pl.contains :: Ord a => x:Pl.Interval a -> y:Pl.Interval a -> { v:Bool | Plutus.contains x y = v }
-@-}
-
-{-@
-measure Plutus.lovelaceValueOf :: Integer -> Pl.Value
-assume Pl.lovelaceValueOf :: x:Integer -> { v:Pl.Value | Plutus.lovelaceValueOf x = v }
-@-}
-
-{-@
-measure Plutus.geq :: Ord a => Pl.Value -> Pl.Value -> Bool
-assume Pl.geq :: Ord a => x:Pl.Value -> y:Pl.Value -> { v:Bool | Plutus.geq x y = v }
 @-}
 
 {-@
 measure Plutus.txSignedBy :: Pl.TxInfo -> Pl.PubKeyHash -> Bool
 assume Pl.txSignedBy
   :: x:Pl.TxInfo -> y:Pl.PubKeyHash -> { v:Bool | Plutus.txSignedBy x y = v }
-@-}
-
-{-@
-measure Plutus.valueLockedBy :: Pl.TxInfo -> Pl.ValidatorHash -> Pl.Value
-assume Pl.valueLockedBy
-  :: x:Pl.TxInfo -> y:Pl.ValidatorHash -> { v:Pl.Value | Plutus.valueLockedBy x y = v }
 @-}
 
 {-@

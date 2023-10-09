@@ -224,9 +224,12 @@ trace _ x = x
 instance Semigroup Value where
     (<>) = undefined
 
+{-@
+measure Plutus.geq :: Ord a => Value -> Value -> Bool
+assume geq :: Ord a => x:Value -> y:Value -> { v:Bool | Plutus.geq x y = v }
+@-}
 geq :: Value -> Value -> Bool
 geq = undefined
-
 
 -- | An interval of @a@s.
 --
@@ -261,7 +264,11 @@ to s = Interval (LowerBound NegInf True) (upperBound s)
 upperBound :: a -> UpperBound a
 upperBound a = UpperBound (Finite a) True
 
-{-@ ignore lovelaceValueOf @-}
+{-@
+measure Plutus.lovelaceValueOf :: Integer -> Value
+assume lovelaceValueOf :: x:Integer -> {v:Value | Plutus.lovelaceValueOf x = v }
+ignore lovelaceValueOf
+@-}
 lovelaceValueOf :: Integer -> Value
 lovelaceValueOf = error "undefined lovelaceValueOf" -- TH.singleton adaSymbol adaToken
 
@@ -269,6 +276,11 @@ lovelaceValueOf = error "undefined lovelaceValueOf" -- TH.singleton adaSymbol ad
 valuePaidTo :: TxInfo -> PubKeyHash -> Value
 valuePaidTo ptx pkh = error "undefined valuePaidTo" -- mconcat (pubKeyOutputsAt pkh ptx)
 
+{-@
+measure Plutus.valueLockedBy :: TxInfo -> ValidatorHash -> Value
+assume valueLockedBy
+  :: x:TxInfo -> y:ValidatorHash -> { v:Value | Plutus.valueLockedBy x y = v }
+@-}
 {-@ ignore valueLockedBy @-}
 -- | Get the total value locked by the given validator in this transaction.
 valueLockedBy :: TxInfo -> ValidatorHash -> Value
@@ -285,6 +297,10 @@ ownHashes :: ScriptContext -> (ValidatorHash, DatumHash)
 ownHashes (findOwnInput -> Just TxInInfo{txInInfoResolved=TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatumHash=Just dh}}) = (s,dh)
 ownHashes _ = error "Lg" -- "Can't get validator and datum hashes"
 
+{-@
+measure Plutus.ownHash :: ScriptContext -> ValidatorHash
+assume ownHash :: x:ScriptContext -> { v:ValidatorHash | Plutus.ownHash x = v }
+@-}
 -- | Get the hash of the validator script that is currently being validated.
 ownHash :: ScriptContext -> ValidatorHash
 ownHash p = fst (ownHashes p)
