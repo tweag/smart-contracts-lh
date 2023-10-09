@@ -46,8 +46,6 @@ data BidderInfo = BidderInfo
   }
   deriving Eq
 
--- TODO: check that the value in the output is the expected one
-
 {-@ reflect hasOnlyOneContinuingOutputWithDatum @-}
 hasOnlyOneContinuingOutputWithDatum :: Pl.ScriptContext -> AuctionState -> Bool
 hasOnlyOneContinuingOutputWithDatum ctx datum =
