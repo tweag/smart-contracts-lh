@@ -82,6 +82,11 @@ bidDeadline = bidDeadline' . staticValParams
 minBid :: ValParams -> Integer
 minBid = minBid' . staticValParams
 
+{-@
+measure Auction.DatumHijacking.lot :: ValParams -> Pl.Value
+assume lot
+  :: x:ValParams -> {v:Pl.Value | Auction.DatumHijacking.lot x = v }
+@-}
 lot :: ValParams -> Pl.Value
 lot = lot' . staticValParams
 
